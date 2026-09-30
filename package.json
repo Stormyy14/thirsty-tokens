@@ -1,0 +1,39 @@
+{
+  "name": "howmuchwater",
+  "description": "How much water did your AI tokens drink? A playful, sourced water-footprint calculator for LLM usage.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "react-router build",
+    "cf-typegen": "wrangler types && react-router typegen",
+    "check": "npm run typecheck && react-router build && wrangler deploy --dry-run",
+    "deploy": "npm run build && wrangler deploy",
+    "dev": "react-router dev",
+    "preview": "npm run build && vite preview",
+    "test": "vitest run",
+    "typecheck": "wrangler types && react-router typegen && tsc -b"
+  },
+  "dependencies": {
+    "isbot": "^5.2.2",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "react-router": "^8.4.0"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.62.3",
+    "@react-router/dev": "^8.4.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^24",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^6.0.3",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.3",
+    "wrangler": "^4.145.0"
+  },
+  "allowScripts": {
+    "workerd@1.20260930.2": true,
+    "esbuild@0.28.1": true
+  }
+}
