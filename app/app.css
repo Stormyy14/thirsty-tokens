@@ -86,6 +86,19 @@
   .chip[aria-selected="true"] {
     @apply border-aqua bg-aqua/15 text-white;
   }
+  /* Single-choice chips: the pick is filled, not just outlined. */
+  .chip-solid[aria-selected="true"],
+  .chip-solid[aria-pressed="true"] {
+    @apply border-aqua bg-aqua font-semibold text-abyss shadow-lg shadow-aqua/25;
+  }
+  /* Selectable card (presets, work type). */
+  .tile {
+    @apply relative rounded-2xl border border-white/10 bg-white/[0.03] text-left transition duration-200 hover:-translate-y-0.5 hover:border-white/25 hover:bg-white/[0.06] active:translate-y-0;
+  }
+  .tile[aria-pressed="true"],
+  .tile[aria-checked="true"] {
+    @apply border-aqua bg-linear-to-br from-aqua/25 via-sea/15 to-transparent shadow-lg shadow-aqua/20 ring-1 ring-aqua/60 ring-inset hover:border-aqua;
+  }
   .label {
     @apply text-xs font-semibold tracking-[0.14em] text-foam/70 uppercase;
   }

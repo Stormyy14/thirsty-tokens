@@ -5,32 +5,34 @@ import { REGIONS } from "./regions";
 
 export type MixId = "chat" | "write" | "read" | "code" | "custom";
 
-export const MIXES: Record<Exclude<MixId, "custom">, { label: string; emoji: string; outShare: number; cacheShare: number; hint: string }> = {
-  chat: { label: "Chatting", emoji: "💬", outShare: 0.3, cacheShare: 0, hint: "30% output" },
-  write: { label: "Writing", emoji: "✍️", outShare: 0.8, cacheShare: 0, hint: "80% output" },
-  read: { label: "Reading / summarizing", emoji: "📚", outShare: 0.03, cacheShare: 0, hint: "3% output" },
-  code: { label: "Agentic coding", emoji: "🤖", outShare: 0.03, cacheShare: 0.9, hint: "3% output, 90% cached" },
+export const MIXES: Record<Exclude<MixId, "custom">, { label: string; emoji: string; outShare: number; cacheShare: number; blurb: string; hint: string }> = {
+  chat: { label: "Chatting", emoji: "💬", outShare: 0.3, cacheShare: 0, blurb: "Back-and-forth Q&A", hint: "30% written" },
+  write: { label: "Writing", emoji: "✍️", outShare: 0.8, cacheShare: 0, blurb: "Long drafts & answers", hint: "80% written" },
+  read: { label: "Summarizing", emoji: "📚", outShare: 0.03, cacheShare: 0, blurb: "Big docs in, short notes out", hint: "3% written" },
+  code: { label: "Agentic coding", emoji: "🤖", outShare: 0.03, cacheShare: 0.9, blurb: "Huge context, 90% cached", hint: "3% written" },
 };
 
 export interface Preset {
   id: string;
   emoji: string;
   label: string;
+  /** Second line under the label. */
+  detail: string;
   tokens: number;
   mix: Exclude<MixId, "custom">;
 }
 
 export const PRESETS: Preset[] = [
-  { id: "hi", emoji: "👋", label: "Say “thanks!”", tokens: 40, mix: "chat" },
-  { id: "question", emoji: "❓", label: "Ask a question", tokens: 600, mix: "chat" },
-  { id: "email", emoji: "📧", label: "Draft an email", tokens: 1_200, mix: "write" },
-  { id: "essay", emoji: "📝", label: "Write a 2,000-word essay", tokens: 3_500, mix: "write" },
-  { id: "pdf", emoji: "📄", label: "Summarize a 40-page PDF", tokens: 25_000, mix: "read" },
-  { id: "novel", emoji: "📚", label: "Write a whole novel", tokens: 130_000, mix: "write" },
-  { id: "codehour", emoji: "💻", label: "1 hour with a coding agent", tokens: 3_000_000, mix: "code" },
-  { id: "codeday", emoji: "🔥", label: "A power-user coding day", tokens: 40_000_000, mix: "code" },
-  { id: "startup", emoji: "🚀", label: "A startup's monthly API traffic", tokens: 2_000_000_000, mix: "chat" },
-  { id: "wiki", emoji: "🌐", label: "Read all of Wikipedia", tokens: 6_000_000_000, mix: "read" },
+  { id: "hi", emoji: "👋", label: "Say “thanks!”", detail: "One polite reply", tokens: 40, mix: "chat" },
+  { id: "question", emoji: "❓", label: "Ask a question", detail: "A typical chat turn", tokens: 600, mix: "chat" },
+  { id: "email", emoji: "📧", label: "Draft an email", detail: "A few paragraphs", tokens: 1_200, mix: "write" },
+  { id: "essay", emoji: "📝", label: "Write an essay", detail: "≈2,000 words", tokens: 3_500, mix: "write" },
+  { id: "pdf", emoji: "📄", label: "Sum up a PDF", detail: "≈40 pages", tokens: 25_000, mix: "read" },
+  { id: "novel", emoji: "📖", label: "Write a novel", detail: "The whole book", tokens: 130_000, mix: "write" },
+  { id: "codehour", emoji: "💻", label: "Agent coding", detail: "For one hour", tokens: 3_000_000, mix: "code" },
+  { id: "codeday", emoji: "🔥", label: "Full coding day", detail: "8h with agents", tokens: 40_000_000, mix: "code" },
+  { id: "startup", emoji: "🚀", label: "Run a startup", detail: "1 month of API", tokens: 2_000_000_000, mix: "chat" },
+  { id: "wiki", emoji: "🌐", label: "Read Wikipedia", detail: "All of it", tokens: 6_000_000_000, mix: "read" },
 ];
 
 export interface CalcState extends EstimateInput {

@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useState, type ReactNode } from "react";
 import { THINKING, type Thinking } from "~/lib/calc";
 import { compactTokens, parseTokens } from "~/lib/format";
 import { getModel, getProvider, modelsByProvider, PROVIDERS, TIERS } from "~/lib/models";
@@ -14,12 +14,24 @@ interface Props {
 
 export function Calculator({ state, update, suggestedRegion, country }: Props) {
   return (
-    <div className="space-y-7">
+    <div className="divide-y divide-white/[0.07] [&>*]:py-8 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
       <TokenField state={state} update={update} />
       <ModelPicker state={state} update={update} />
       <MixPicker state={state} update={update} />
       <Advanced state={state} update={update} suggestedRegion={suggestedRegion} country={country} />
     </div>
+  );
+}
+
+function StepTitle({ n, children, htmlFor }: { n: number; children: ReactNode; htmlFor?: string }) {
+  const Tag = htmlFor ? "label" : "p";
+  return (
+    <Tag htmlFor={htmlFor} className="flex items-center gap-3">
+      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-aqua/15 font-display text-sm font-bold text-aqua ring-1 ring-aqua/40" aria-hidden>
+        {n}
+      </span>
+      <span className="font-display text-lg font-semibold text-white">{children}</span>
+    </Tag>
   );
 }
 
@@ -44,10 +56,10 @@ function TokenField({ state, update }: Pick<Props, "state" | "update">) {
 
   return (
     <div>
-      <label htmlFor={id} className="label">
-        1 · How many tokens?
-      </label>
-      <div className="mt-3 flex items-stretch gap-3">
+      <StepTitle n={1} htmlFor={id}>
+        How many tokens?
+      </StepTitle>
+      <div className="mt-4 flex items-stretch gap-3">
         <div className="relative flex-1">
           <input
             id={id}
@@ -106,7 +118,8 @@ function TokenField({ state, update }: Pick<Props, "state" | "update">) {
         <span>10T</span>
       </div>
 
-      <div className="-mx-1 mt-4 flex flex-wrap gap-2">
+      <p className="mt-7 mb-3 text-sm text-foam/70">…or pick a moment:</p>
+      <div className="grid grid-cols-2 gap-2.5 md:grid-cols-5">
         {PRESETS.map((p) => {
           const active = state.tokens === p.tokens && state.mix === p.mix;
           return (
@@ -115,11 +128,20 @@ function TokenField({ state, update }: Pick<Props, "state" | "update">) {
               type="button"
               aria-pressed={active}
               onClick={() => update({ tokens: p.tokens, mix: p.mix, outShare: MIXES[p.mix].outShare, cacheShare: MIXES[p.mix].cacheShare })}
-              className="chip"
+              className="tile group flex flex-col gap-2 px-2.5 py-3 sm:px-3"
             >
-              <span aria-hidden>{p.emoji}</span>
-              {p.label}
-              <span className="text-foam/50">{compactTokens(p.tokens)}</span>
+              <span className="flex items-start justify-between gap-2">
+                <span className="grid h-9 w-9 place-items-center rounded-xl bg-white/5 text-xl transition group-hover:scale-110 group-aria-pressed:bg-abyss/50" aria-hidden>
+                  {p.emoji}
+                </span>
+                <span className="rounded-full bg-white/5 px-2 py-0.5 font-mono text-[11px] text-foam/70 transition group-aria-pressed:bg-aqua group-aria-pressed:font-semibold group-aria-pressed:text-abyss">
+                  {compactTokens(p.tokens)}
+                </span>
+              </span>
+              <span>
+                <span className="block text-[13px] leading-snug font-semibold text-white">{p.label}</span>
+                <span className="mt-0.5 block text-[11px] leading-snug text-foam/55 group-aria-pressed:text-foam/80">{p.detail}</span>
+              </span>
             </button>
           );
         })}
@@ -144,8 +166,8 @@ function ModelPicker({ state, update }: Pick<Props, "state" | "update">) {
 
   return (
     <div>
-      <p className="label">2 · Which AI?</p>
-      <div role="tablist" aria-label="Provider" className="mt-3 flex flex-wrap gap-2">
+      <StepTitle n={2}>Which AI?</StepTitle>
+      <div role="tablist" aria-label="Provider" className="mt-4 flex flex-wrap gap-2">
         {PROVIDERS.map((p) => (
           <button
             key={p.id}
@@ -156,15 +178,15 @@ function ModelPicker({ state, update }: Pick<Props, "state" | "update">) {
               setProviderId(p.id);
               if (p.id !== current.provider) update({ model: modelsByProvider(p.id)[0].id });
             }}
-            className="chip"
+            className="chip chip-solid"
           >
-            <span className="h-2.5 w-2.5 rounded-full" style={{ background: p.color }} aria-hidden />
+            <span className="h-2.5 w-2.5 rounded-full ring-2 ring-white/10" style={{ background: p.color }} aria-hidden />
             {p.name}
           </button>
         ))}
       </div>
 
-      <div role="radiogroup" aria-label="Model" className="mt-3 grid gap-2 sm:grid-cols-2">
+      <div role="radiogroup" aria-label="Model" className="mt-4 grid gap-2.5 sm:grid-cols-2">
         {models.map((m) => {
           const selected = m.id === state.model;
           return (
@@ -174,9 +196,7 @@ function ModelPicker({ state, update }: Pick<Props, "state" | "update">) {
               role="radio"
               aria-checked={selected}
               onClick={() => update({ model: m.id })}
-              className={`group rounded-2xl border p-3 text-left transition ${
-                selected ? "border-aqua bg-aqua/10 shadow-lg shadow-aqua/10" : "border-white/10 bg-white/[0.03] hover:border-white/25"
-              }`}
+              className="tile group p-3"
             >
               <div className="flex items-start justify-between gap-2">
                 <span className="font-semibold text-white">{m.name}</span>
@@ -229,21 +249,44 @@ function MixPicker({ state, update }: Pick<Props, "state" | "update">) {
 
   return (
     <div>
-      <p className="label">3 · What kind of work?</p>
-      <p className="mt-1 text-sm text-foam/60">Writing tokens (output) costs ~5× more energy than reading them (input).</p>
-      <div className="mt-3 flex flex-wrap gap-2">
-        {(Object.keys(MIXES) as (keyof typeof MIXES)[]).map((k) => (
-          <button key={k} type="button" className="chip" aria-pressed={state.mix === k} onClick={() => setMix(k)}>
-            <span aria-hidden>{MIXES[k].emoji}</span> {MIXES[k].label}
-            <span className="text-foam/50">{MIXES[k].hint}</span>
-          </button>
-        ))}
-        <button type="button" className="chip" aria-pressed={state.mix === "custom"} onClick={() => setMix("custom")}>
-          🎛️ Custom
+      <StepTitle n={3}>What kind of work?</StepTitle>
+      <p className="mt-2 text-sm text-foam/60">Writing tokens (output) costs ~5× more energy than reading them (input).</p>
+      <div role="radiogroup" aria-label="Kind of work" className="mt-4 grid grid-cols-2 gap-2.5 md:grid-cols-4">
+        {(Object.keys(MIXES) as (keyof typeof MIXES)[]).map((k) => {
+          const mix = MIXES[k];
+          return (
+            <button key={k} type="button" role="radio" aria-checked={state.mix === k} onClick={() => setMix(k)} className="tile group flex flex-col p-3.5">
+              <span className="flex items-start justify-between">
+                <span className="grid h-9 w-9 place-items-center rounded-xl bg-white/5 text-xl group-aria-checked:bg-abyss/50" aria-hidden>
+                  {mix.emoji}
+                </span>
+                <span
+                  className="grid h-5 w-5 place-items-center rounded-full border-2 border-white/20 text-[11px] font-bold text-transparent transition group-aria-checked:border-aqua group-aria-checked:bg-aqua group-aria-checked:text-abyss"
+                  aria-hidden
+                >
+                  ✓
+                </span>
+              </span>
+              <span className="mt-3 text-sm font-semibold text-white">{mix.label}</span>
+              <span className="mt-0.5 text-xs leading-snug text-foam/60">{mix.blurb}</span>
+              <span className="mt-auto pt-3">
+                <span className="block h-1.5 overflow-hidden rounded-full bg-white/10" aria-hidden>
+                  <span className="block h-full rounded-full bg-aqua/70 group-aria-checked:bg-aqua" style={{ width: `${Math.max(4, mix.outShare * 100)}%` }} />
+                </span>
+                <span className="mt-1.5 block font-mono text-[10.5px] text-foam/55 group-aria-checked:text-foam/85">{mix.hint}</span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+        <button type="button" className="chip chip-solid" aria-pressed={state.mix === "custom"} onClick={() => setMix("custom")}>
+          <span aria-hidden>🎛️</span> Custom mix
         </button>
+        {state.mix !== "custom" && <span className="text-xs text-foam/50">Know your exact input/output split? Set it yourself.</span>}
       </div>
       {state.mix === "custom" && (
-        <div className="mt-4 grid gap-4 rounded-2xl border border-white/10 bg-white/[0.03] p-4 sm:grid-cols-2">
+        <div className="mt-4 grid gap-4 rounded-2xl border border-aqua/30 bg-aqua/[0.05] p-4 sm:grid-cols-2">
           <PercentSlider label="Output share" value={state.outShare} onChange={(v) => update({ outShare: v })} />
           <PercentSlider label="Input served from cache" value={state.cacheShare} onChange={(v) => update({ cacheShare: v })} />
         </div>
@@ -275,7 +318,7 @@ function Advanced({ state, update, suggestedRegion, country }: Props) {
 
   return (
     <div className="space-y-5">
-      <p className="label">4 · Fine print</p>
+      <StepTitle n={4}>Fine print</StepTitle>
 
       <div>
         <label htmlFor={regionId} className="text-sm text-foam/80">Data center location</label>
