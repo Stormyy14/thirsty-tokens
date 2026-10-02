@@ -79,7 +79,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
         </div>
 
         <div className="mt-10 grid gap-6 lg:grid-cols-12">
-          <div className="card p-5 sm:p-7 lg:col-span-7">
+          <div className="card min-w-0 p-5 sm:p-7 lg:col-span-7">
             <Calculator
               state={state}
               update={update}
@@ -87,7 +87,7 @@ export default function Home({ loaderData }: Route.ComponentProps) {
               country={loaderData.country}
             />
           </div>
-          <div id="result" className="lg:col-span-5">
+          <div id="result" className="min-w-0 lg:col-span-5">
             <div className="card border-aqua/20 p-5 sm:p-7 lg:sticky lg:top-24">
               <ResultPanel est={est} units={state.units} tokens={state.tokens} scope={state.scope} />
             </div>

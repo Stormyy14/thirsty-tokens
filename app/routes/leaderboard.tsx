@@ -1,12 +1,13 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { Link } from "react-router";
 import type { Route } from "./+types/leaderboard";
 import { TierBadge } from "~/components/Calculator";
 import { FillEmoji } from "~/components/Comparisons";
+import { Dropdown, type DropdownOption } from "~/components/Dropdown";
 import { estimate, type Scope } from "~/lib/calc";
 import { pickHighlights } from "~/lib/comparisons";
 import { count, nice, volume, type Units } from "~/lib/format";
-import { getModel, getProvider, MODELS, PROVIDERS } from "~/lib/models";
+import { getModel, getProvider, MODELS, PROVIDERS, TIERS } from "~/lib/models";
 import { REGIONS } from "~/lib/regions";
 import { MIXES } from "~/lib/state";
 
@@ -68,37 +69,51 @@ export default function Leaderboard() {
 
       {/* filters: one row above the chart */}
       <div className="card mt-8 flex flex-wrap items-end gap-4 p-4 sm:p-5">
-        <label className="min-w-52 flex-1 text-sm text-foam/80">
-          Region
-          <select value={region} onChange={(e) => setRegion(e.target.value)} className="field mt-1.5 py-2 text-sm">
-            <option value="auto">Auto — each provider's usual fleet</option>
-            {REGIONS.map((r) => (
-              <option key={r.id} value={r.id}>{r.icon} {r.name}</option>
-            ))}
-          </select>
-        </label>
-        <label className="min-w-44 text-sm text-foam/80">
-          Workload
-          <select value={mix} onChange={(e) => setMix(e.target.value as MixKey)} className="field mt-1.5 py-2 text-sm">
-            {(Object.keys(MIXES) as MixKey[]).map((k) => (
-              <option key={k} value={k}>{MIXES[k].emoji} {MIXES[k].label}</option>
-            ))}
-          </select>
-        </label>
-        <label className="min-w-44 text-sm text-foam/80">
-          What counts
-          <select value={scope} onChange={(e) => setScope(e.target.value as Scope)} className="field mt-1.5 py-2 text-sm">
-            <option value="full">Cooling + power plants</option>
-            <option value="onsite">Cooling only</option>
-          </select>
-        </label>
-        <label className="min-w-32 text-sm text-foam/80">
-          Units
-          <select value={units} onChange={(e) => setUnits(e.target.value as Units)} className="field mt-1.5 py-2 text-sm">
-            <option value="metric">Liters</option>
-            <option value="imperial">Gallons</option>
-          </select>
-        </label>
+        <Filter label="Region" className="min-w-60 flex-1">
+          <Dropdown
+            size="sm"
+            label="Region"
+            value={region}
+            onChange={setRegion}
+            options={[
+              { value: "auto", icon: "✨", label: "Auto", display: "Auto · each provider's usual fleet", description: "Each provider's usual fleet" },
+              ...REGIONS.map((r) => ({ value: r.id, icon: r.icon, label: r.name, description: r.note, meta: <span className="font-mono">{r.ewif} L/kWh</span> })),
+            ]}
+          />
+        </Filter>
+        <Filter label="Workload" className="min-w-48">
+          <Dropdown
+            size="sm"
+            label="Workload"
+            value={mix}
+            onChange={(v) => setMix(v as MixKey)}
+            options={(Object.keys(MIXES) as MixKey[]).map((k) => ({ value: k, icon: MIXES[k].emoji, label: MIXES[k].label, description: MIXES[k].blurb }))}
+          />
+        </Filter>
+        <Filter label="What counts" className="min-w-52">
+          <Dropdown
+            size="sm"
+            label="What counts"
+            value={scope}
+            onChange={(v) => setScope(v as Scope)}
+            options={[
+              { value: "full", icon: "🏭", label: "Cooling + power plants", description: "On-site cooling plus water evaporated making the power" },
+              { value: "onsite", icon: "❄️", label: "Cooling only", description: "What most companies report" },
+            ]}
+          />
+        </Filter>
+        <Filter label="Units" className="min-w-36">
+          <Dropdown
+            size="sm"
+            label="Units"
+            value={units}
+            onChange={(v) => setUnits(v as Units)}
+            options={[
+              { value: "metric", icon: "🧪", label: "Liters" },
+              { value: "imperial", icon: "🥛", label: "Gallons" },
+            ]}
+          />
+        </Filter>
         <div className="flex w-full flex-wrap gap-2 pt-1">
           {PROVIDERS.map((p) => (
             <button key={p.id} type="button" className="chip" aria-pressed={!hidden.has(p.id)} onClick={() => toggleProvider(p.id)}>
@@ -230,19 +245,25 @@ function HeadToHead({
   );
 }
 
-function ModelSelect({ value, onChange, label }: { value: string; onChange: (v: string) => void; label: string }) {
+const MODEL_OPTIONS: DropdownOption[] = PROVIDERS.flatMap((p) =>
+  MODELS.filter((m) => m.provider === p.id).map((m) => ({
+    value: m.id,
+    group: p.name,
+    icon: <span className="h-2.5 w-2.5 rounded-full" style={{ background: p.color }} />,
+    label: m.name,
+    description: `${p.name} · ${TIERS[m.tier].label}`,
+  })),
+);
+
+function Filter({ label, className = "", children }: { label: string; className?: string; children: ReactNode }) {
   return (
-    <label className="block text-sm text-foam/80">
-      {label}
-      <select value={value} onChange={(e) => onChange(e.target.value)} className="field mt-1.5 py-2.5">
-        {PROVIDERS.map((p) => (
-          <optgroup key={p.id} label={p.name}>
-            {MODELS.filter((m) => m.provider === p.id).map((m) => (
-              <option key={m.id} value={m.id}>{m.name}</option>
-            ))}
-          </optgroup>
-        ))}
-      </select>
-    </label>
+    <div className={`text-sm ${className}`}>
+      <p className="mb-1.5 text-foam/80">{label}</p>
+      {children}
+    </div>
   );
+}
+
+function ModelSelect({ value, onChange, label }: { value: string; onChange: (v: string) => void; label: string }) {
+  return <Filter label={label}><Dropdown label={label} value={value} onChange={onChange} options={MODEL_OPTIONS} /></Filter>;
 }

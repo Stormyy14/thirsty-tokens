@@ -1,4 +1,5 @@
 import { useEffect, useId, useState, type ReactNode } from "react";
+import { Dropdown } from "./Dropdown";
 import { THINKING, type Thinking } from "~/lib/calc";
 import { compactTokens, parseTokens } from "~/lib/format";
 import { getModel, getProvider, modelsByProvider, PROVIDERS, TIERS } from "~/lib/models";
@@ -322,21 +323,30 @@ function Advanced({ state, update, suggestedRegion, country }: Props) {
 
       <div>
         <label htmlFor={regionId} className="text-sm text-foam/80">Data center location</label>
-        <select
-          id={regionId}
-          value={state.region}
-          onChange={(e) => update({ region: e.target.value })}
-          className="field mt-2 appearance-none bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 20 20%22 fill=%22%23bae6fd%22><path d=%22M5 7l5 6 5-6z%22/></svg>')] bg-[length:18px] bg-[right_14px_center] bg-no-repeat py-2.5 text-sm"
-        >
-          <option value="auto">
-            Auto — {provider.name}'s usual fleet ({autoRegion.icon} {autoRegion.name})
-          </option>
-          {REGIONS.map((r) => (
-            <option key={r.id} value={r.id}>
-              {r.icon} {r.name}
-            </option>
-          ))}
-        </select>
+        <div className="mt-2">
+          <Dropdown
+            id={regionId}
+            label="Data center location"
+            value={state.region}
+            onChange={(v) => update({ region: v })}
+            options={[
+              {
+                value: "auto",
+                icon: "✨",
+                label: "Auto",
+                display: `Auto · ${autoRegion.name}`,
+                description: `${provider.name}'s usual fleet · ${autoRegion.icon} ${autoRegion.name}`,
+              },
+              ...REGIONS.map((r) => ({
+                value: r.id,
+                icon: r.icon,
+                label: r.name,
+                description: r.note,
+                meta: <span className="font-mono">{r.ewif} L/kWh</span>,
+              })),
+            ]}
+          />
+        </div>
         {suggestion && state.region === "auto" && suggestion.id !== autoRegion.id && (
           <button type="button" onClick={() => update({ region: suggestion.id })} className="mt-2 text-left text-sm text-aqua hover:underline">
             📍 You seem to be browsing from {countryName(country)} — see what it'd cost on the {suggestion.name} grid →
